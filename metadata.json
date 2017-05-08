@@ -1,0 +1,15 @@
+{
+  "name": "dnase-puppet_agent_migrate",
+  "version": "0.1.0",
+  "author": "dnase",
+  "summary": "Upgrades Puppet agents and migrates them to a new master, optionally refreshing certs.",
+  "license": "Apache-2.0",
+  "source": "https://github.com/dnase/puppet_agent_migrate",
+  "project_page": "https://github.com/dnase/puppet_agent_migrate",
+  "issues_url": "https://github.com/dnase/puppet_agent_migrate/issues",
+  "dependencies": [
+    {"name":"puppetlabs-stdlib","version_requirement":">= 1.0.0"}
+  ],
+  "data_provider": null
+}
+
