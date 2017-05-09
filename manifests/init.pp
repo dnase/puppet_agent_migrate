@@ -1,48 +1,77 @@
 # Class: puppet_agent_migrate
 # ===========================
 #
-# Full description of class puppet_agent_migrate here.
+# This class is designed to migrate and upgrade Puppet agents. 
 #
 # Parameters
 # ----------
 #
-# Document parameters here.
+# * `new_master`
+# Required - hostname of new Puppet master to which to cut over. 
 #
-# * `sample parameter`
-# Explanation of what this parameter affects and what it defaults to.
-# e.g. "Specify one or more upstream ntp servers as an array."
+# * `new_ca`
+# Optional - new certificate authority at which to point Puppet agent
 #
-# Variables
-# ----------
+# * `version`
+# Optional - version of Puppet agent to which to upgrade. Defaults to 'present'.
 #
-# Here you should define a list of variables that this module would require.
-#
-# * `sample variable`
-#  Explanation of how this variable affects the function of this class and if
-#  it has a default. e.g. "The parameter enc_ntp_servers must be set by the
-#  External Node Classifier as a comma separated list of hostnames." (Note,
-#  global variables should be avoided in favor of class parameters as
-#  of Puppet 2.6.)
+# * `flush_certs`
+# Optional - whether or not to clear out SSL certificates. Defaults to false.
 #
 # Examples
 # --------
 #
 # @example
 #    class { 'puppet_agent_migrate':
-#      servers => [ 'pool.ntp.org', 'ntp.local.company.com' ],
+#      new_master => 'master.mydomain.com', 
 #    }
 #
 # Authors
 # -------
 #
-# Author Name <author@domain.com>
+# Drew Nase <drew@puppet.com>
 #
 # Copyright
 # ---------
 #
-# Copyright 2017 Your name here, unless otherwise noted.
+# Copyright 2017 Drew Nase 
 #
-class puppet_agent_migrate {
-
-
+class puppet_agent_migrate (
+  $new_master,
+  $new_ca = undef,
+  $version = 'present',
+  $flush_certs = false,
+) {
+  Ini_setting {
+    path    => "${::confdir}/puppet.conf",
+    section => 'main',
+    require => Class['::puppet_agent'],
+    notify  => Service['pe-puppet'],
+  }
+  if !defined(Service['pe-puppet']) {
+    service { 'pe-puppet': }
+  }
+  class { '::puppet_agent':
+    package_version => $version,
+  }
+  ini_setting { 'puppetserver':
+    ensure  => present,
+    setting => 'server',
+    value   => $new_master,
+  }
+  if $new_ca {
+    ini_setting { 'puppetca':
+      ensure  => present,
+      setting => 'ca_server',
+      value   => $new_ca,
+    }
+  }
+  if $flush_certs {
+    file { $::ssldir:
+      ensure  => absent,
+      force   => true,
+      require => Ini_setting['puppetserver'],
+      notify  => Service['pe-puppet'],
+    }
+  }
 }
