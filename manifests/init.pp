@@ -37,41 +37,43 @@
 # Copyright 2017 Drew Nase 
 #
 class puppet_agent_migrate (
-  $new_master,
+  $new_master = undef,
   $new_ca = undef,
   $version = 'present',
   $flush_certs = false,
 ) {
-  Ini_setting {
-    path    => "${::confdir}/puppet.conf",
-    section => 'main',
-    require => Class['::puppet_agent'],
-    notify  => Service['pe-puppet'],
-  }
-  if !defined(Service['pe-puppet']) {
-    service { 'pe-puppet': }
-  }
-  class { '::puppet_agent':
-    package_version => $version,
-  }
-  ini_setting { 'puppetserver':
-    ensure  => present,
-    setting => 'server',
-    value   => $new_master,
-  }
-  if $new_ca {
-    ini_setting { 'puppetca':
-      ensure  => present,
-      setting => 'ca_server',
-      value   => $new_ca,
-    }
-  }
-  if $flush_certs {
-    file { $::ssldir:
-      ensure  => absent,
-      force   => true,
-      require => Ini_setting['puppetserver'],
+  if $new_master {
+    Ini_setting {
+      path    => $::agent_settings['config'],
+      section => 'main',
+      require => Class['::puppet_agent'],
       notify  => Service['pe-puppet'],
+    }
+    if !defined(Service['pe-puppet']) {
+      service { 'pe-puppet': }
+    }
+    class { '::puppet_agent':
+      package_version => $version,
+    }
+    ini_setting { 'puppetserver':
+      ensure  => present,
+      setting => 'server',
+      value   => $new_master,
+    }
+    if $new_ca {
+      ini_setting { 'puppetca':
+        ensure  => present,
+        setting => 'ca_server',
+        value   => $new_ca,
+      }
+    }
+    if $flush_certs {
+      file { $::agent_settings['ssldir']:
+        ensure  => absent,
+        force   => true,
+        require => Ini_setting['puppetserver'],
+        notify  => Service['pe-puppet'],
+      }
     }
   }
 }
