@@ -23,7 +23,7 @@
 #
 # @example
 #    class { 'puppet_agent_migrate':
-#      new_master => 'master.mydomain.com', 
+#      new_master => 'newmaster.mydomain.com', 
 #    }
 #
 # Authors
