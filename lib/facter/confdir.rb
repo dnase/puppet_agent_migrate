@@ -1,7 +1,6 @@
 require 'puppet'
 Facter.add('confdir') do
   setcode do
-    confdir = `puppet agent --configprint confdir`
-    confdir.strip
+    Puppet.settings['confdir']
   end
 end
