@@ -46,7 +46,7 @@ class puppet_agent_migrate (
     Ini_setting {
       path    => $::agent_settings['config'],
       section => 'main',
-      require => Class['::puppet_agent'],
+      before  => Class['::puppet_agent'],
       notify  => Service['pe-puppet'],
     }
     if !defined(Service['pe-puppet']) {
@@ -73,6 +73,7 @@ class puppet_agent_migrate (
         force   => true,
         require => Ini_setting['puppetserver'],
         notify  => Service['pe-puppet'],
+        before  => Class['::puppet_agent'],
       }
     }
   }
